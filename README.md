@@ -1,4 +1,4 @@
-# 🚀 Realtime 3D Player (2D to 3D Converter)
+# Realtime 3D Player (2D to 3D Converter)
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10-green.svg)](https://www.python.org/)
@@ -24,12 +24,12 @@ Please scroll down for the English version.
 双击项目目录下的 **`install_env.bat`**。
 
 *   脚本会自动创建虚拟环境 (venv) 并下载 GPU 版 PyTorch 和其他依赖库。
-*   **注意**：此过程需要下载约 2GB+ 数据，请耐心等待直到窗口提示“环境安装完成”或自动关闭。
+*   **注意**：此过程需要下载约 5GB 数据，请耐心等待直到窗口提示“环境安装完成”或自动关闭。
 
 ### 3. 启动程序
 双击 **`run_app.bat`** 即可启动。
 
-*   **自动模型下载**：首次启动时，程序会自动检测并下载 **Small / Base / Large** 全套模型（共约 1.6GB）。
+*   **自动模型下载**：首次启动时，程序会自动检测并下载 **Small / Base / Large** 全套模型（共约 1.7GB）。
     *   *请保持网络畅通，下载完成后 GUI 界面会自动弹出。*
 *   **后续运行**：环境和模型准备好后，直接双击此脚本即可秒开。
 
@@ -42,7 +42,7 @@ Please scroll down for the English version.
 **主要特性：**
 
 *   **实时转换**：利用 TensorRT/CUDA 加速，实现低延迟的 2D 转 3D 推理。
-*   **桌面/游戏采集**：集成 DXCam（极速）和 MSS（兼容）两种采集引擎，支持实时转换游戏画面。
+*   **桌面/采集**：集成 DXCam（极速）和 MSS（兼容）两种采集引擎，支持实时转换画面。
 *   **全自动部署**：内置 Python 脚本自动处理依赖安装与模型下载。
 *   **可视化控制**：提供 GUI 界面调节分辨率、模型大小 (Small/Base/Large) 及 3D 强度。
 
@@ -54,6 +54,7 @@ Please scroll down for the English version.
 
 *   **GPU**: NVIDIA GeForce RTX 系列显卡。
 *   **系统**: Windows 10 / 11 (64-bit)。
+*   **外设**: 至少两块屏幕，一块用于原始图像采集，一块用于显示。
 
 **软件要求**
 
@@ -62,14 +63,13 @@ Please scroll down for the English version.
 
 ---
 
-## 四、操作快捷键
+## 四、操作与快捷键
 
 程序运行并弹出 3D 画面后，你可以使用以下快捷键进行实时调整：
 
 | 按键 | 功能 |
 | :--- | :--- |
 | **Q** | 退出程序 |
-| **F** | 全屏 / 退出全屏 |
 | **Space (空格)** | 交换左右眼 (Swap Left/Right) |
 | **]** | 增加 3D 强度 (更立体) |
 | **[** | 减小 3D 强度 (更扁平) |
@@ -112,7 +112,7 @@ This project is a Python-based real-time 2D-to-3D video player. It leverages the
 **Key Features:**
 
 *   **Real-time Conversion**: Uses TensorRT/CUDA acceleration for low-latency inference.
-*   **Desktop Capture**: Integrates DXCam (High Performance) and MSS (Compatible) engines for real-time game conversion.
+*   **Screen Capture:** Integrates two capture engines: DXCam (high-speed) and MSS (compatible), supporting real-time screen conversion.
 *   **Fully Automated**: Built-in scripts handle dependency installation and model downloading automatically.
 *   **GUI Control**: Easy-to-use interface to adjust resolution, model size, and 3D strength.
 
@@ -124,6 +124,7 @@ This project is a Python-based real-time 2D-to-3D video player. It leverages the
 
 *   **GPU**: NVIDIA GeForce RTX series recommended.
 *   **OS**: Windows 10 / 11 (64-bit).
+*   **Peripherals**: At least two screens are required, one for original image acquisition and one for display.
 
 **Software Requirements**
 
@@ -139,7 +140,6 @@ Once the 3D window is running, use the following hotkeys:
 | Key | Function |
 | :--- | :--- |
 | **Q** | Quit Application |
-| **F** | Toggle Fullscreen |
 | **Space** | Swap Left/Right Eye |
 | **]** | Increase 3D Strength (More Depth) |
 | **[** | Decrease 3D Strength (Flatter) |
