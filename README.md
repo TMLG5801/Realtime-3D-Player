@@ -1,8 +1,10 @@
 # Realtime 3D Player (2D to 3D Converter)
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10-green.svg)](https://www.python.org/)
-[![Powered By](https://img.shields.io/badge/Powered%20By-DepthAnythingV2-orange.svg)](https://github.com/DepthAnything/Depth-Anything-V2)
+[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![Python Version](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-CUDA%2012.1-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![NVIDIA](https://img.shields.io/badge/Optimized%20for-NVIDIA%20RTX-76B900?style=flat-square&logo=nvidia&logoColor=white)](https://www.nvidia.com/)
+[![Model](https://img.shields.io/badge/Model-Depth%20Anything%20V2-FF9D00?style=flat-square&logo=huggingface&logoColor=white)](https://github.com/DepthAnything/Depth-Anything-V2)
 
 Please scroll down for the English version.
 
