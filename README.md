@@ -1,63 +1,70 @@
-# Realtime 3D Player (基于 AI 的实时 2D 转 3D 播放器)
+# 🚀 Realtime 3D Player (2D to 3D Converter)
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-green.svg)](https://www.python.org/)
-[![Powered By](https://img.shields.io/badge/Powered%20By-IW3%20%26%20DepthAnythingV2-orange.svg)](https://github.com/nagadomi/iw3)
+[![Python](https://img.shields.io/badge/python-3.10-green.svg)](https://www.python.org/)
+[![Powered By](https://img.shields.io/badge/Powered%20By-DepthAnythingV2-orange.svg)](https://github.com/DepthAnything/Depth-Anything-V2)
 
-这是一个基于 Python 的实时视频播放器，它利用最先进的 **Depth Anything V2** 模型，将原本平面的 2D 画面实时转换为 **3D SBS (Side-by-Side)** 格式。
+Please scroll down for the English version.
 
-配合 VR 头显（如 Quest 3/Pico 4）或 3D 显示器，你可以立刻享受震撼的立体视觉体验！✨
+## 一、安装与运行指南
 
----
+本项目采用自动化脚本部署，请严格按照以下步骤操作。
 
-## 核心功能
+### 1. 前置准备
+**必须安装 Python 3.10！** (3.11 也可以，但推荐 3.10 以获得最佳兼容性)
 
-*   **⚡ 实时转换**：利用 GPU 加速，实现低延迟的 2D 转 3D 推理。
-*   **🎮 桌面/游戏采集**：支持 DXCam（极速）和 MSS（兼容）两种采集模式，可实时转换游戏画面。
-*   **🛠️ 简易 GUI**：提供图形化界面，轻松调整分辨率、模型大小和采集源。
-*   **🚀 一键部署**：内置自动化脚本，小白也能轻松配置复杂的 AI 环境。
+ [点击下载 Python 3.10 (Windows 64位)](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
+ 
+ **⚠️ 重要：** 安装时务必勾选底部的 **"Add Python 3.10 to PATH"** (添加到环境变量)，否则脚本无法运行！
+    (如果不确定是否安装成功，请打开 CMD 输入 `python --version` 检查)
 
----
+**硬件要求：** 仅支持 NVIDIA 显卡，且需安装最新的显卡驱动。
 
-## 硬件要求
+### 2. 一键安装环境 (仅首次需要)
+双击项目目录下的 **`install_env.bat`**。
 
-*   **操作系统**: Windows 10 / 11
-*   **显卡 (GPU)**: 强烈推荐 **NVIDIA 显卡** (支持 CUDA 加速)。
-    *   *注意：使用集显或非 N 卡可能导致帧率极低或无法运行 DXCam 模式。*
-*   **内存**: 建议 8GB 以上。
-*   **Python**: 需要安装 Python 3.10 或更高版本。
+*   脚本会自动创建虚拟环境 (venv) 并下载 GPU 版 PyTorch 和其他依赖库。
+*   **注意**：此过程需要下载约 2GB+ 数据，请耐心等待直到窗口提示“环境安装完成”或自动关闭。
 
----
+### 3. 启动程序
+双击 **`run_app.bat`** 即可启动。
 
-## 安装与运行
-
-我们为您准备了全自动的安装脚本，无需手动输入复杂命令。
-
-### 第一步：准备文件
-1. 下载本项目并解压。
-2. 确保你的电脑已安装 [Python](https://www.python.org/downloads/) (安装时请勾选 **Add Python to PATH**)。
-
-### 第二步：下载模型 (重要!)
-由于 GitHub 文件大小限制，请手动下载核心模型文件，并放入项目的 `models` 文件夹中。
-
-1. **下载地址**: [HuggingFace - Depth Anything V2](https://huggingface.co/depth-anything/Depth-Anything-V2-Small/tree/main) (或 Base/Large 版本)
-2. **文件名**: 
-   - `depth_anything_v2_vits.pth` (Small - 速度最快)
-   - `depth_anything_v2_vitb.pth` (Base - 均衡推荐)
-   - `depth_anything_v2_vitl.pth` (Large - 效果最好)
-3. **放置位置**: 将下载的 `.pth` 文件直接放入 `models/` 文件夹。
-
-### 第三步：一键启动
-双击运行根目录下的 **`install_and_run.bat`**。
-
-*   **首次运行**: 脚本会自动创建虚拟环境并下载 2GB+ 的依赖库（包括 GPU 版 PyTorch），请耐心等待。
-*   **后续运行**: 双击即可秒开。
+*   **自动模型下载**：首次启动时，程序会自动检测并下载 **Small / Base / Large** 全套模型（共约 1.6GB）。
+    *   *请保持网络畅通，下载完成后 GUI 界面会自动弹出。*
+*   **后续运行**：环境和模型准备好后，直接双击此脚本即可秒开。
 
 ---
 
-## 操作快捷键
+## 二、项目介绍
 
-程序运行并弹出 3D 画面后，你可以使用以下快捷键：
+本项目是一个基于 Python 的实时视频/桌面转 3D 播放器。它利用 **Depth Anything V2** 模型，将原本平面的 2D 画面实时推理为深度图，并渲染为 **3D SBS (Side-by-Side)** 格式。
+
+**主要特性：**
+
+*   **实时转换**：利用 TensorRT/CUDA 加速，实现低延迟的 2D 转 3D 推理。
+*   **桌面/游戏采集**：集成 DXCam（极速）和 MSS（兼容）两种采集引擎，支持实时转换游戏画面。
+*   **全自动部署**：内置 Python 脚本自动处理依赖安装与模型下载。
+*   **可视化控制**：提供 GUI 界面调节分辨率、模型大小 (Small/Base/Large) 及 3D 强度。
+
+---
+
+## 三、环境依赖
+
+**硬件要求**
+
+*   **GPU**: NVIDIA GeForce RTX 系列显卡。
+*   **系统**: Windows 10 / 11 (64-bit)。
+
+**软件要求**
+
+*   **Python**: 3.10+ (必需)。
+*   **CUDA**: 程序会自动安装带有 CUDA 12.1 支持的 PyTorch，无需手动安装 CUDA Toolkit。
+
+---
+
+## 四、操作快捷键
+
+程序运行并弹出 3D 画面后，你可以使用以下快捷键进行实时调整：
 
 | 按键 | 功能 |
 | :--- | :--- |
@@ -70,39 +77,82 @@
 
 ---
 
-## 常见问题 (FAQ)
+## I. Installation and Running Guide
 
-**Q: 运行 `install_and_run.bat` 闪退怎么办？**
-A: 请右键编辑 bat 文件，查看最后是否有报错。通常是因为未安装 Python 或者网络连接超时。
+This project uses automated deployment scripts. Please follow the steps below precisely.
 
-**Q: 提示 "Model file not found"？**
-A: 请检查 `models` 文件夹里是否真的有 `.pth` 文件。如果没有，请参考“安装步骤”去下载。
+### 1. Prerequisites
+**Python 3.10 must be installed!** (3.11 works too, but 3.10 is recommended).
 
-**Q: 笔记本电脑报错 "DXCam Error"？**
-A: DXCam 只能捕捉连接在独显上的屏幕。如果你是笔记本（核显输出画面），请在启动界面的 "Capture Engine" 中选择 **MSS** 模式。
+[Click to download Python 3.10 (Windows 64-bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
 
-**Q: 画面很卡，FPS 很低？**
-A: 
-1. 确保程序运行在 NVIDIA 独显上。
-2. 在启动界面尝试选择 **Small** 模型。
-3. 降低分辨率选项（如选择 720p）。
+**⚠️ Important:** Check the **"Add Python 3.10 to PATH"** option at the bottom during installation!
+
+**Hardware:** NVIDIA GPU only. Please ensure your graphics drivers are up to date.
+
+### 2. Install Environment (First Time Only)
+Double-click **`install_env.bat`** in the project directory.
+
+*   The script will automatically create a virtual environment (venv) and download the GPU version of PyTorch and other dependencies.
+*   **Note**: This process involves downloading 2GB+ of data. Please wait until the window indicates completion or closes automatically.
+
+### 3. Start Application
+Double-click **`run_app.bat`** to launch.
+
+*   **Auto Model Download**: On the first launch, the program will automatically detect and download the **Small / Base / Large** model set (approx. 1.6GB).
+    *   *The GUI will appear automatically once the download is complete.*
+*   **Subsequent Runs**: Just double-click this script to run instantly.
 
 ---
 
-## 开发者指南 (Manual Setup)
+## II. Project Introduction
 
-如果你想手动配置环境，请参考以下步骤：
+This project is a Python-based real-time 2D-to-3D video player. It leverages the **Depth Anything V2** model to infer depth maps from flat 2D images in real-time and renders them into **3D SBS (Side-by-Side)** format.
 
-```bash
-# 1. 创建环境
-python -m venv venv
-.\venv\Scripts\activate
+**Key Features:**
 
-# 2. 安装 PyTorch (GPU 版 - CUDA 12.1)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+*   **Real-time Conversion**: Uses TensorRT/CUDA acceleration for low-latency inference.
+*   **Desktop Capture**: Integrates DXCam (High Performance) and MSS (Compatible) engines for real-time game conversion.
+*   **Fully Automated**: Built-in scripts handle dependency installation and model downloading automatically.
+*   **GUI Control**: Easy-to-use interface to adjust resolution, model size, and 3D strength.
 
-# 3. 安装其他依赖
-pip install -r requirements.txt
+---
 
-# 4. 运行
-python main.py
+## III. Environmental Dependencies
+
+**Hardware Requirements**
+
+*   **GPU**: NVIDIA GeForce RTX series recommended.
+*   **OS**: Windows 10 / 11 (64-bit).
+
+**Software Requirements**
+
+*   **Python**: 3.10+ (Required).
+*   **CUDA**: The program automatically installs PyTorch with CUDA 12.1 support; manual CUDA Toolkit installation is not required.
+
+---
+
+## IV. Controls
+
+Once the 3D window is running, use the following hotkeys:
+
+| Key | Function |
+| :--- | :--- |
+| **Q** | Quit Application |
+| **F** | Toggle Fullscreen |
+| **Space** | Swap Left/Right Eye |
+| **]** | Increase 3D Strength (More Depth) |
+| **[** | Decrease 3D Strength (Flatter) |
+| **Tab** | Toggle OSD Info Panel |
+
+---
+
+## 🤝 Credits & License
+
+This project is based on the following amazing open-source projects:
+
+*   **[iw3](https://github.com/nagadomi/iw3)** by nagadomi - Core 3D logic and nunif framework.
+*   **[Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2)** - State-of-the-art Monocular Depth Estimation.
+*   **[DXCam](https://github.com/ra1nty/DXCam)** - High-performance Windows screen capture.
+
+Licensed under the **MIT License**.
