@@ -1,0 +1,22 @@
+# === 核心播放器依赖 ===
+numpy
+opencv-python
+mss
+psutil
+pynvml
+dxcam; sys_platform == 'win32'
+
+# === iw3 & nunif 框架依赖 (缺少这些会报错) ===
+Pillow
+scipy
+tqdm
+PyYAML
+omegaconf
+addict
+av
+
+# === AI 模型依赖 (DepthAnythingV2 必须) ===
+timm
+einops
+safetensors
+huggingface_hub
