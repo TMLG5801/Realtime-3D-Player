@@ -117,6 +117,29 @@ Please scroll down for the English version.
 
 ---
 
+## 五、技术原理与开发计划
+
+### 1. 自动对焦机制
+本项目目前的自动对焦采用的是 **中心加权统计方案**。
+
+* **实现原理**：截取画面中心 **25%** 的区域，计算该区域深度图的 **80% 分位数值 (80th Percentile)** 作为对焦平面，并使用 **EMA (指数移动平均)** 进行时域平滑。
+* **设计权衡**：
+    * ✅ **速度极快**：纯数学统计，耗时 **<0.5ms**，对 GPU 几乎无负载。
+    * ✅ **实时性**：在必须保证流畅的前提下，这是目前性价比最高的方案。
+    * ❌ **局限性**：无法识别画面边缘的主体（如构图偏左的人物），通过“鼠标点击对焦”可解决此问题。
+
+*为什么不使用人脸识别/显著性检测？*
+> 引入额外的检测模型（如 YOLO 或 U2Net）会增加 10-30ms 的推理延迟，这将严重破坏实时播放器的流畅度。目前的方案是“性能优先”的最优解。
+
+### 2. 未来更新计划 (Roadmap)
+欢迎社区贡献代码！以下是我们计划改进的方向：
+
+- [ ] **交互优化**：添加 **“鼠标点击对焦 (Tap to Focus)”** 功能，允许用户手动指定对焦点。
+- [ ] **算法优化**：实现动态对焦区域（例如根据深度直方图自动调整中心采样范围）。
+- [ ] **性能监控**：更详细的逐层耗时统计面板。
+
+---
+
 ## I. Installation and Running Guide
 
 This project uses automated deployment scripts. Please follow the steps below precisely.
@@ -219,6 +242,29 @@ After the program runs and the 3D image appears, the focus must be on the playba
 | **[** | Decrease Intensity | Reduces the 3D depth perception (the image appears flatter) |
 | **Tab** | OSD Toggle | Shows/hides the FPS and parameter panel in the upper left corner |
 | **F** | Fullscreen Toggle | Switches between windowed and fullscreen display |
+
+---
+
+## V. Technical Principles & Roadmap
+
+### 1. Autofocus Mechanism
+The project currently utilizes **Center-Weighted Statistical Autofocus**.
+
+* **How it works**: Crops the center **25%** of the depth map, calculates the **80th percentile** depth value as the focal plane, and applies **EMA (Exponential Moving Average)** for smoothing.
+* **Design Trade-off**:
+    * ✅ **Ultra Fast**: Pure mathematical statistics, taking **<0.5ms**, with negligible GPU load.
+    * ✅ **Real-time**: Essential for maintaining high FPS.
+    * ❌ **Limitation**: Cannot focus on off-center subjects automatically.
+
+*Why not use Face Detection or Saliency Detection?*
+> Adding extra detection models (like YOLO or U2Net) would introduce 10-30ms of latency, severely impacting the fluidity of a real-time player. The current approach is the optimal solution for "Performance First".
+
+### 2. Roadmap
+Contributions are welcome! Here is the plan for future updates:
+
+- [ ] **Interaction**: Implement **"Tap to Focus"** (click on screen to set focal plane manually).
+- [ ] **Algorithm**: Dynamic focus region (adjust crop size based on depth histogram).
+- [ ] **Profiling**: More detailed performance statistics panel.
 
 ---
 
