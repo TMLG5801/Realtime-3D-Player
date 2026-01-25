@@ -151,7 +151,7 @@ Once the 3D window is running, use the following hotkeys:
 
 This project is based on the following amazing open-source projects:
 
-*   **[iw3](https://github.com/nagadomi/iw3)** by nagadomi - Core 3D logic and nunif framework.
+*   **[iw3](https://github.com/nagadomi/nunif)** by nagadomi - Core 3D logic and nunif framework.
 *   **[Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2)** - State-of-the-art Monocular Depth Estimation.
 *   **[DXCam](https://github.com/ra1nty/DXCam)** - High-performance Windows screen capture.
 
