@@ -1,10 +1,11 @@
 # Realtime 3D Player (2D to 3D Converter)
 
-[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 [![Python Version](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-CUDA%2012.1-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![NVIDIA](https://img.shields.io/badge/Optimized%20for-NVIDIA%20RTX-76B900?style=flat-square&logo=nvidia&logoColor=white)](https://www.nvidia.com/)
 [![Model](https://img.shields.io/badge/Model-Depth%20Anything%20V2-FF9D00?style=flat-square&logo=huggingface&logoColor=white)](https://github.com/DepthAnything/Depth-Anything-V2)
+[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![GitHub License](https://img.shields.io/github/license/TMLG5801/Realtime-3D-Player?style=flat-square&color=blue)](LICENSE)
 
 Please scroll down for the English version.
 
