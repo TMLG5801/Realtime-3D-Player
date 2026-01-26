@@ -9,6 +9,11 @@
 
 Please scroll down for the English version.
 
+<img width="5120" height="1600" alt="sample1" src="https://github.com/user-attachments/assets/313537f7-faa2-4802-b0d2-8c65dc7fb617" />
+<br>
+  <sub> 实机演示截图 (Real-time Demo) | 测试环境: RTX 3080 12GB | Model: Large | Res: 1080P</sub>
+</p>
+
 ## 一、安装与运行指南
 
 本项目采用自动化脚本部署，请严格按照以下步骤操作。
