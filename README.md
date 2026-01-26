@@ -157,12 +157,12 @@ This project uses automated deployment scripts. Please follow the steps below pr
 Double-click **`install_env.bat`** in the project directory.
 
 *   The script will automatically create a virtual environment (venv) and download the GPU version of PyTorch and other dependencies.
-*   **Note**: This process involves downloading 2GB+ of data. Please wait until the window indicates completion or closes automatically.
+*   **Note**: This process involves downloading 5GB of data. Please wait until the window indicates completion or closes automatically.
 
 ### 3. Start Application
 Double-click **`run_app.bat`** to launch.
 
-*   **Auto Model Download**: On the first launch, the program will automatically detect and download the **Small / Base / Large** model set (approx. 1.6GB).
+*   **Auto Model Download**: On the first launch, the program will automatically detect and download the **Small / Base / Large** model set (approx. 1.7GB).
     *   *The GUI will appear automatically once the download is complete.*
 *   **Subsequent Runs**: Just double-click this script to run instantly.
 
