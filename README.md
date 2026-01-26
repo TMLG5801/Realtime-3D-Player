@@ -54,7 +54,7 @@ Please scroll down for the English version.
 
 ## 二、项目介绍
 
-本项目是一个基于 Python 的实时视频/桌面转 3D 播放器。它利用 **Depth Anything V2** 模型，将原本平面的 2D 画面实时推理为深度图，并渲染为 **3D SBS (Side-by-Side)** 格式。
+本项目是一个基于 Python 的实时视频/桌面转 3D 播放器。它利用 **Depth Anything V2** 模型，将原本平面的 2D 画面实时推理为深度图，并渲染为 **视差3D** 格式。
 
 **主要特性：**
 
@@ -71,7 +71,7 @@ Please scroll down for the English version.
 
 *   **GPU**: NVIDIA GeForce RTX 系列显卡。
 *   **系统**: Windows 10 / 11 (64-bit)。
-*   **外设**: 至少两块屏幕，一块用于原始图像采集，一块用于显示。
+*   **外设**: 至少两块屏幕，一块用于原始图像采集，一块用于显示，以及一幅色差3D眼镜。
 
 **软件要求**
 
@@ -96,7 +96,7 @@ Please scroll down for the English version.
     * **Fit**: 保持原始画面比例，不足部分填充黑边（适合看电影）。
     * **Stretch**: 强制拉伸画面填满窗口（适合全屏玩游戏）。
 * **Resolution (分辨率)**:
-    * **Native**: (推荐 RTX 30/40 系) 使用屏幕原始分辨率进行推理，画质无损，零缩放开销。
+    * **Native**: 使用屏幕原始分辨率进行推理，画质无损，零缩放开销。
     * **1080P / 720P**: 强制压缩分辨率，可显著降低显卡负载，适合配置较低的设备。
 * **Buffer Size (缓冲区)**:
     * 设置为 **0** 或 **1** 即为 **Realtime (极速模式)**，延迟最低。
@@ -184,7 +184,7 @@ For ease of maintenance, the following is the main file structure of the project
 
 ## II. Project Introduction
 
-This project is a Python-based real-time 2D-to-3D video player. It leverages the **Depth Anything V2** model to infer depth maps from flat 2D images in real-time and renders them into **3D SBS (Side-by-Side)** format.
+This project is a Python-based real-time 2D-to-3D video player. It leverages the **Depth Anything V2** model to infer depth maps from flat 2D images in real-time and renders them into **Anaglyph 3D** format.
 
 **Key Features:**
 
@@ -201,7 +201,7 @@ This project is a Python-based real-time 2D-to-3D video player. It leverages the
 
 *   **GPU**: NVIDIA GeForce RTX series recommended.
 *   **OS**: Windows 10 / 11 (64-bit).
-*   **Peripherals**: At least two screens are required, one for original image acquisition and one for display.
+*   **Peripherals**: At least two screens are required, one for original image acquisition and one for display,and a pair of Anaglyph 3D Glasses.
 
 **Software Requirements**
 
