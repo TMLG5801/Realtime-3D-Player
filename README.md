@@ -26,7 +26,9 @@ Please scroll down for the English version.
  **⚠️ 重要：** 安装时务必勾选底部的 **"Add Python 3.10 to PATH"** (添加到环境变量)，否则脚本无法运行！
     (如果不确定是否安装成功，请打开 CMD 输入 `python --version` 检查)
 
-**硬件要求：** 仅支持 NVIDIA 显卡，且需安装最新的显卡驱动。
+**选择安装OBS**
+
+**硬件要求：** 必须使用 NVIDIA RTX系列显卡，且需安装最新的显卡驱动。
 
 ### 2. 一键安装环境 (仅首次需要)
 双击项目目录下的 **`install_env.bat`**。
@@ -59,12 +61,12 @@ Please scroll down for the English version.
 
 ## 二、项目介绍
 
-本项目是一个基于 Python 的实时视频/桌面转 3D 播放器。它利用 **Depth Anything V2** 模型，将原本平面的 2D 画面实时推理为深度图，并渲染为 **3D SBS (Side-by-Side)** 格式。
+本项目是一个基于 Python 的实时视频/桌面转 3D 播放器。它利用 **Depth Anything V2** 模型，将原本平面的 2D 画面实时推理为深度图，并渲染为 **色差式3D** 格式。
 
 **主要特性：**
 
 * **实时转换**：利用 TensorRT/CUDA 加速，实现低延迟的 2D 转 3D 推理。
-* **多重采集引擎**：集成 OBS 虚拟摄像机（支持后台窗口抓取）、DXCam（桌面极速）和 MSS，打破显示器物理限制。
+* **多重采集引擎**：集成 OBS 虚拟摄像机（支持后台窗口抓取）、DXCam（桌面极速）和 MSS。
 * **全自动部署**：内置 Python 脚本自动处理依赖安装与模型下载。
 * **可视化控制**：提供 GUI 界面调节分辨率、模型大小及 3D 强度。
 
@@ -107,7 +109,7 @@ Please scroll down for the English version.
     * 设置为 **0** 即为 **Realtime (极速模式)**，延迟最低。
  
 ### 2. OBS 虚拟摄像机使用指南
-本项目的 `Camera` 引擎支持读取 OBS 虚拟摄像机。通过此工作流，你可以**将播放着电影的浏览器放在后台或副屏，甚至被其他窗口完全遮挡**，主屏依然能完美全屏渲染 3D 画面。
+本项目的 `Camera` 引擎支持读取 OBS 虚拟摄像机。通过此工作流，你可以**将播放着电影的浏览器放在后台或副屏，甚至被其他窗口遮挡**，程序依然能渲染 3D 画面。
 
 **OBS 配置步骤：**
 1. **添加采集源**：在 OBS 左下角的“来源”面板点击 `+`，选择 **窗口采集 (Window Capture)**，选中你的浏览器或播放器窗口。
@@ -137,10 +139,10 @@ Please scroll down for the English version.
 ### 1. 技术核心解读
 * **AI Depth Vision (单目深度估算)**：采用 Depth Anything V2 模型与 CUDA 加速，毫秒级解析画面空间透视，实时生成高精度深度图，为 2D 转 3D 提供底层视觉基础。
 * **Dynamic Pixel Shifting (智能立体渲染)**：提取中心深度构建虚拟对焦面，利用网格采样算法进行动态像素偏移。根据深度精确重映射左右眼图像，实时合成符合双目视差且无眩晕感的 3D 画面。
-* **Zero-Copy Pipeline (零拷贝高性能流水线)**：极致优化显存带宽，缩放与色彩转换全封装于 GPU 完成。底层将浮点张量直接压缩为字节数据，使总线回传压力骤降 75%，保障 60FPS 流畅实时转换。
+* **Zero-Copy Pipeline (零拷贝高性能流水线)**：极致优化显存带宽，缩放与色彩转换全封装于 GPU 完成。底层将浮点张量直接压缩为字节数据，使总线回传压力骤降 75%，保障流畅实时转换。
 
 ### 2. 未来更新计划 (Roadmap)
-欢迎社区参与贡献代码！以下是我们计划改进的方向：
+欢迎社区参与贡献代码！以下是我计划改进的方向：
 - [ ] **交互优化**：添加 **“鼠标点击对焦 (Tap to Focus)”** 功能，允许用户手动指定对焦点。
 - [ ] **算法优化**：实现动态对焦区域（例如根据深度直方图自动调整中心采样范围）。
 - [ ] **VR 支持**：接入 SteamVR 接口，直接输出到 VR 头显。
@@ -159,13 +161,15 @@ This project uses automated deployment scripts. Please follow the steps below pr
 
 **⚠️ Important:** Check the **"Add Python 3.10 to PATH"** option at the bottom during installation!
 
-**Hardware:** NVIDIA GPU only. Please ensure your graphics drivers are up to date.
+**Optional OBS Installation**
+
+**Hardware:** NVIDIA RTX series graphics cards are required, and the latest graphics card drivers must be installed.
 
 ### 2. Install Environment (First Time Only)
 Double-click **`install_env.bat`** in the project directory.
 
 * The script will automatically create a virtual environment (venv) and download the GPU version of PyTorch and other dependencies.
-* **Note**: This process involves downloading 2GB+ of data. Please wait until the window indicates completion or closes automatically.
+* **Note**: This process involves downloading 5GB+ of data. Please wait until the window indicates completion or closes automatically.
 
 ### 3. Start Application
 Double-click **`run_app.bat`** to launch.
@@ -189,7 +193,7 @@ Double-click **`run_app.bat`** to launch.
 
 ## II. Project Introduction
 
-This project is a Python-based real-time 2D-to-3D video player. It leverages the **Depth Anything V2** model to infer depth maps from flat 2D images in real-time and renders them into **3D SBS (Side-by-Side)** format.
+This project is a Python-based real-time 2D-to-3D video player. It leverages the **Depth Anything V2** model to infer depth maps from flat 2D images in real-time and renders them into **Anaglyphic 3D** format.
 
 **Key Features:**
 
@@ -203,7 +207,7 @@ This project is a Python-based real-time 2D-to-3D video player. It leverages the
 ## III. Environmental Dependencies
 
 **Hardware Requirements**
-* **GPU**: NVIDIA GeForce RTX series recommended.
+* **GPU**: NVIDIA GeForce RTX series graphics cards are required.
 * **OS**: Windows 10 / 11 (64-bit).
 
 **Software Requirements**
@@ -232,7 +236,7 @@ This project is a Python-based real-time 2D-to-3D video player. It leverages the
   * **0** is **Realtime Mode**, offering the lowest latency.
 
 ### 3. OBS Virtual Camera Guide
-The `Camera` engine in this project supports OBS Virtual Camera. With this workflow, you can **put your browser/movie player in the background or on a secondary monitor (even fully occluded)**, and still render a perfect fullscreen 3D view on your main monitor.
+The `Camera` engine in this project supports OBS Virtual Camera. With this workflow, you can **put your browser/movie player in the background or on a secondary monitor**, and still render a 3D view on your main monitor.
 
 **OBS Setup Steps (One-time setup):**
 1. **Add Source**: Click `+` in the OBS "Sources" panel, select **Window Capture**, and choose your browser/player window.
