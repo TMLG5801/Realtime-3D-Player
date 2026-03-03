@@ -13,48 +13,47 @@ if LIB_DIR not in sys.path:
 os.environ["NUNIF_HOME"] = LIB_DIR
 
 # ==========================================
-# 启动逻辑 (修复 ESC 返回菜单问题)
+# 启动逻辑 (包含 ESC 返回循环)
 # ==========================================
 if __name__ == "__main__":
-    print(f"[INFO] 初始化环境...")
-    
+    print(f"[INFO] Initializing...")
+
     try:
+        # 直接导入整合好的唯一核心
         from src import player_core
         
-        # === 循环逻辑：GUI -> Player -> GUI ===
         while True:
-            # 1. 重置启动标志位 (防止上一次的状态残留)
+            # 重置启动标志
             player_core.CONFIG["started"] = False
-            
-            # 2. 启动 GUI 配置器
             root = tk.Tk()
+            
+            # 解决 DPI 缩放模糊问题
             try:
                 import ctypes
                 ctypes.windll.shcore.SetProcessDpiAwareness(1)
             except: pass
             
             app = player_core.LauncherApp(root)
-            root.mainloop() # 等待用户关闭窗口或点击开始
-
-            # 3. 检查用户行为
+            root.mainloop()
+            
+            # 检查是否正常点击了 START
             if not player_core.CONFIG.get("started", False):
-                print("[INFO] 用户关闭了配置窗口，程序退出。")
-                break # 用户直接点了 X，退出程序
-
-            # 4. 启动播放器 (获取返回值)
-            # start_player 返回 True 代表按了 ESC (重启)，返回 False 代表按了 Q (退出)
+                print("[INFO] Exiting...")
+                break
+                
+            # 获取播放器的退出状态 (True=按了ESC, False=按了Q)
             should_restart = player_core.start_player()
             
             if not should_restart:
-                print("[INFO] 收到退出信号，程序结束。")
+                print("[INFO] Quit signal received. Exiting.")
                 break
             else:
-                print("[INFO] 正在返回主菜单...")
-            
+                print("[INFO] Returning to Main Menu...")
+                
     except ImportError as e:
-        print(f"\n❌ 导入错误: {e}")
-        input("按回车键退出...")
+        print(f"\n[ERROR] Missing libraries -> {e}")
+        input("\nPress Enter to exit...")
     except Exception as e:
-        print("\n❌ 程序崩溃：")
+        print("\n[CRASH] Error details:")
         traceback.print_exc()
-        input("按回车键退出...")
+        input("\nPress Enter to exit...")

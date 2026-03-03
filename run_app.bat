@@ -1,6 +1,6 @@
 @echo off
 cd /d "%~dp0"
-title 3D Player - Step 2: Run
+title 3D Player - Launcher
 
 if not exist venv\Scripts\activate.bat (
     echo [ERROR] Environment not found! Please run 'install_env.bat' first.
@@ -11,7 +11,7 @@ if not exist venv\Scripts\activate.bat (
 echo [INFO] Activating Environment...
 call venv\Scripts\activate.bat
 
-echo [INFO] Launching Main Program...
+echo [INFO] Launching Program...
 python main.py
 
 if %errorlevel% neq 0 (

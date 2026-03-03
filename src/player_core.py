@@ -13,25 +13,19 @@ import warnings
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-# 忽略 pynvml 的废弃警告
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ==========================================
 # 🔧 环境路径配置
 # ==========================================
-# 获取当前脚本所在目录 (src)
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# 获取项目根目录 (src 的上一级)
 project_root = os.path.dirname(current_dir)
-# 定义库目录
 lib_path = os.path.join(project_root, "lib")
 
-# 将 lib 挂载到环境变量
 if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 os.environ["NUNIF_HOME"] = lib_path
 
-# 导入 iw3
 try:
     from iw3.utils import create_depth_model
 except ImportError:
@@ -39,37 +33,28 @@ except ImportError:
     def create_depth_model(**kwargs): return None
 
 # === 库检测 ===
-try:
-    import psutil
-    HAS_PSUTIL = True
-except ImportError:
-    HAS_PSUTIL = False
+try: import psutil; HAS_PSUTIL = True
+except ImportError: HAS_PSUTIL = False
 
-try:
-    import pynvml
-    HAS_NVML = True
-except ImportError:
-    HAS_NVML = False
+try: import pynvml; HAS_NVML = True
+except ImportError: HAS_NVML = False
 
-try:
-    import dxcam
-    HAS_DXCAM = True
-except ImportError:
-    HAS_DXCAM = False
+try: import dxcam; HAS_DXCAM = True
+except ImportError: HAS_DXCAM = False
 
-# === 全局配置 ===
+# === 全局默认配置 ===
 CONFIG = {
     "model": "Base",       
     "fill_mode": "Fit",     
-    "res_mode": "Native",   
+    "res_mode": "1920x1080 (1080p FHD)", # 默认分辨率
     "monitor_id": 1,       
-    "capture_backend": "Auto",
-    "buffer": 60,
+    "capture_backend": "Camera",  
+    "buffer": 0,                  
     "dxcam_list_idx": 0,
+    "camera_idx": 0,        
     "started": False 
 }
 
-# 内部参数
 DIVERGENCE = 0.13       
 SWAP_EYES = False       
 FOCUS_EMA = 0.15        
@@ -78,7 +63,6 @@ STEP_SIZE = 0.005
 DEVICE = "cuda"
 INFER_WIDTH = 518 
 
-# 运行时变量
 frame_queue = None
 running = True
 thread_error = None
@@ -86,40 +70,54 @@ show_osd = True
 SCREEN_W = 0
 SCREEN_H = 0
 DXCAM_MONITOR_LIST = []
+CAMERA_LIST = [] 
 
 # ==========================================
-# 辅助函数
+# 工具函数
 # ==========================================
 def scan_dxcam_monitors():
     if not HAS_DXCAM: return []
     monitors = []
-    # 简单的静默扫描
     for dev_idx in range(4):
         try:
             for out_idx in range(4):
                 try:
                     cam = dxcam.create(device_idx=dev_idx, output_idx=out_idx)
                     if cam:
-                        monitors.append({
-                            "device": dev_idx, 
-                            "output": out_idx, 
-                            "res": f"{cam.width}x{cam.height}",
-                            "name": f"GPU{dev_idx}-Out{out_idx}"
-                        })
+                        monitors.append({"device": dev_idx, "output": out_idx, "res": f"{cam.width}x{cam.height}", "name": f"GPU{dev_idx}-Out{out_idx}"})
                         del cam 
                 except: break 
         except: pass 
     return monitors
 
-def get_multiple_of_14(size):
-    return int(round(size / 14) * 14)
+def scan_cameras():
+    monitors = []
+    print("\n[INFO] Scanning Cameras (OBS/Webcams)... This may take a second.")
+    for i in range(4):
+        cap = cv2.VideoCapture(i) 
+        if cap.isOpened():
+            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            monitors.append({"device": i, "name": f"Camera Device {i}", "res": f"{w}x{h}"})
+            cap.release()
+    return monitors
+
+def get_multiple_of_14(size): return int(round(size / 14) * 14)
 
 def get_gpu_load():
     if not HAS_NVML: return 0.0
-    try:
-        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-        return pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
+    try: return pynvml.nvmlDeviceGetUtilizationRates(pynvml.nvmlDeviceGetHandleByIndex(0)).gpu
     except: return 0.0
+
+def parse_resolution(res_str):
+    """解析 GUI 选择的分辨率字符串为宽高数字"""
+    if "Native" in res_str: 
+        return None, None
+    try:
+        parts = res_str.split(" ")[0].split("x")
+        return int(parts[0]), int(parts[1])
+    except:
+        return 1920, 1080
 
 # ==========================================
 # GUI 启动器
@@ -127,13 +125,10 @@ def get_gpu_load():
 class LauncherApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Realtime 3D Player")
+        self.root.title("Realtime 3D Player (Open Source v14.2)")
         self.root.geometry("480x580")
-        
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        x = (screen_width - 480) // 2
-        y = (screen_height - 580) // 2
+        x = (root.winfo_screenwidth() - 480) // 2
+        y = (root.winfo_screenheight() - 580) // 2
         root.geometry(f"+{x}+{y}")
 
         style = ttk.Style()
@@ -147,12 +142,11 @@ class LauncherApp:
         be_frame.pack()
         
         dx_state = tk.NORMAL if HAS_DXCAM else tk.DISABLED
-        ttk.Radiobutton(be_frame, text="DXCam", variable=self.backend_var, value="DXCam", state=dx_state).pack(side=tk.LEFT, padx=5)
-        ttk.Radiobutton(be_frame, text="MSS", variable=self.backend_var, value="MSS").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(be_frame, text="DXCam", variable=self.backend_var, value="DXCam", state=dx_state, command=self.update_sources).pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(be_frame, text="MSS", variable=self.backend_var, value="MSS", command=self.update_sources).pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(be_frame, text="Camera (OBS)", variable=self.backend_var, value="Camera", command=self.update_sources).pack(side=tk.LEFT, padx=5)
         
-        # Auto 修正
-        if self.backend_var.get() == "Auto": 
-            self.backend_var.set("DXCam" if HAS_DXCAM else "MSS")
+        if self.backend_var.get() == "Auto": self.backend_var.set("DXCam" if HAS_DXCAM else "MSS")
 
         # === AI Model ===
         ttk.Label(root, text="AI Model", padding=(0, 10, 0, 5)).pack()
@@ -171,20 +165,26 @@ class LauncherApp:
         ttk.Radiobutton(fill_frame, text="Fit (Black Bars)", variable=self.fill_var, value="Fit").pack(side=tk.LEFT, padx=10)
         ttk.Radiobutton(fill_frame, text="Stretch", variable=self.fill_var, value="Stretch").pack(side=tk.LEFT, padx=10)
 
-        # === Resolution ===
-        ttk.Label(root, text="Resolution (GPU Scaled)", padding=(0, 15, 0, 5)).pack()
+        # === Resolution (新增主流分辨率下拉菜单) ===
+        ttk.Label(root, text="Target Resolution (Controls OBS & Rendering)", padding=(0, 15, 0, 5)).pack()
         self.res_var = tk.StringVar(value=CONFIG["res_mode"])
-        res_frame = ttk.Frame(root)
-        res_frame.pack()
-        ttk.Radiobutton(res_frame, text="Native", variable=self.res_var, value="Native").pack(side=tk.LEFT, padx=5)
-        ttk.Radiobutton(res_frame, text="1080P", variable=self.res_var, value="1080p").pack(side=tk.LEFT, padx=5)
-        ttk.Radiobutton(res_frame, text="720P", variable=self.res_var, value="720p").pack(side=tk.LEFT, padx=5)
+        res_combo = ttk.Combobox(root, textvariable=self.res_var, state="readonly", width=30)
+        res_combo['values'] = [
+            "Native (Auto/Source)",
+            "3840x2160 (4K UHD)",
+            "2560x1440 (2K QHD)",
+            "1920x1080 (1080p FHD)",
+            "1600x900 (900p HD+)",
+            "1280x720 (720p HD)",
+            "854x480 (480p WVGA)"
+        ]
+        res_combo.pack()
 
         # === Source Selection ===
         ttk.Label(root, text="Select Source", padding=(0, 15, 0, 5)).pack()
         self.mon_combo = ttk.Combobox(root, width=45, state="readonly")
-        self.scan_and_fill_monitors()
         self.mon_combo.pack()
+        self.update_sources() 
 
         # === Buffer ===
         ttk.Label(root, text="Buffer Size (0=Realtime)", padding=(0, 15, 0, 5)).pack()
@@ -194,33 +194,39 @@ class LauncherApp:
 
         ttk.Button(root, text="START PLAYER", command=self.on_start).pack(pady=20, ipadx=30, ipady=10)
 
-    def scan_and_fill_monitors(self):
+    def update_sources(self):
+        backend = self.backend_var.get()
         values = []
-        # 1. Scan MSS
-        try:
-            sct = mss.mss()
-            for i, m in enumerate(sct.monitors):
-                if i == 0: continue 
-                values.append(f"MSS: Screen {i} ({m['width']}x{m['height']})")
-        except: pass
-        
-        # 2. Scan DXCam
-        global DXCAM_MONITOR_LIST
-        if HAS_DXCAM:
+        if backend == "DXCam":
+            global DXCAM_MONITOR_LIST
             DXCAM_MONITOR_LIST = scan_dxcam_monitors()
             for idx, m in enumerate(DXCAM_MONITOR_LIST):
                 values.append(f"DXCam: {m['name']} ({m['res']}) [ID={idx}]")
-        
-        if not values: values = ["No monitors found"]
+        elif backend == "MSS":
+            try:
+                sct = mss.mss()
+                for i, m in enumerate(sct.monitors):
+                    if i == 0: continue 
+                    values.append(f"MSS: Screen {i} ({m['width']}x{m['height']})")
+            except: pass
+        elif backend == "Camera":
+            global CAMERA_LIST
+            CAMERA_LIST = scan_cameras()
+            for m in CAMERA_LIST:
+                values.append(f"Camera: {m['name']} [ID={m['device']}]")
+
+        if not values: values = ["No source found"]
         self.mon_combo['values'] = values
         
-        # Try to restore previous selection
         current_idx = 0
         current_val = self.mon_combo.get()
         if not current_val and values:
-            if CONFIG["capture_backend"] == "DXCam":
+            if backend == "DXCam":
                  for i, v in enumerate(values):
                      if f"[ID={CONFIG['dxcam_list_idx']}]" in v: current_idx = i; break
+            elif backend == "Camera":
+                 for i, v in enumerate(values):
+                     if f"[ID={CONFIG['camera_idx']}]" in v: current_idx = i; break
             else:
                 for i, v in enumerate(values):
                      if f"Screen {CONFIG['monitor_id']}" in v: current_idx = i; break
@@ -230,35 +236,27 @@ class LauncherApp:
         CONFIG["model"] = self.model_var.get()
         CONFIG["fill_mode"] = self.fill_var.get()
         CONFIG["res_mode"] = self.res_var.get()
-        # 处理 Buffer
-        try:
-            val = int(self.buf_spin.get())
-            CONFIG["buffer"] = max(0, val)
-        except: CONFIG["buffer"] = 60
+        CONFIG["capture_backend"] = self.backend_var.get()
         
-        # 处理 Monitor Selection
+        try: CONFIG["buffer"] = max(0, int(self.buf_spin.get()))
+        except: CONFIG["buffer"] = 0
+        
         selection = self.mon_combo.get()
-        if "DXCam" in selection:
-            CONFIG["capture_backend"] = "DXCam"
+        if CONFIG["capture_backend"] == "DXCam":
             try: CONFIG["dxcam_list_idx"] = int(selection.split("[ID=")[1].split("]")[0])
             except: CONFIG["dxcam_list_idx"] = 0
-        else:
-            CONFIG["capture_backend"] = "MSS"
+        elif CONFIG["capture_backend"] == "MSS":
             try:
                 import re
                 match = re.search(r"Screen (\d+)", selection)
                 CONFIG["monitor_id"] = int(match.group(1)) if match else 1
             except: CONFIG["monitor_id"] = 1
+        elif CONFIG["capture_backend"] == "Camera":
+            try: CONFIG["camera_idx"] = int(selection.split("[ID=")[1].split("]")[0])
+            except: CONFIG["camera_idx"] = 0
             
-        # 检查模型文件是否存在
-        fname_map = {
-            "Small": "depth_anything_v2_vits.pth", 
-            "Base":  "depth_anything_v2_vitb.pth", 
-            "Large": "depth_anything_v2_vitl.pth"
-        }
+        fname_map = {"Small": "depth_anything_v2_vits.pth", "Base":  "depth_anything_v2_vitb.pth", "Large": "depth_anything_v2_vitl.pth"}
         fname = fname_map.get(CONFIG["model"], "depth_anything_v2_vitb.pth")
-        
-        # 使用全局 project_root (修复之前的 NameError)
         user_path = os.path.join(project_root, "models", fname)
         
         if not os.path.exists(user_path):
@@ -278,15 +276,53 @@ def capture_thread_func():
     realtime_mode = (CONFIG["buffer"] <= 1)
 
     try:
-        if backend == "DXCam":
+        if backend == "Camera":
+            cam_idx = CONFIG.get("camera_idx", 0)
+            print(f"[INFO] Connecting to Camera/OBS Device {cam_idx}...")
+            cap = cv2.VideoCapture(cam_idx)
+            
+            # 解析 GUI 设置的分辨率，并强制 OBS 吐出对应尺寸
+            req_w, req_h = parse_resolution(CONFIG["res_mode"])
+            if req_w and req_h:
+                print(f"[INFO] Requesting OBS resolution: {req_w}x{req_h}")
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, req_w)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, req_h)
+            else:
+                # 若选择 Native，为防止 640x480 bug，保底请求 1080P
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            
+            SCREEN_W = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            SCREEN_H = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            
+            if not cap.isOpened() or SCREEN_W == 0:
+                raise Exception(f"无法打开设备 ID={cam_idx}，请确认 OBS 虚拟摄像机已启动。")
+                
+            print(f"[INFO] Camera Connected: {SCREEN_W}x{SCREEN_H}")
+
+            while running:
+                ret, frame = cap.read()
+                if ret:
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    if realtime_mode:
+                        while not frame_queue.empty():
+                            try: frame_queue.get_nowait()
+                            except: break
+                        frame_queue.put(frame_rgb)
+                    else:
+                        if not frame_queue.full(): frame_queue.put(frame_rgb)
+                        else: time.sleep(0.001)
+                else:
+                    time.sleep(0.01)
+            cap.release()
+
+        elif backend == "DXCam":
             list_idx = CONFIG.get("dxcam_list_idx", 0)
             if list_idx < len(DXCAM_MONITOR_LIST):
                 target = DXCAM_MONITOR_LIST[list_idx]
                 dev_idx, out_idx = target["device"], target["output"]
-            else:
-                dev_idx, out_idx = 0, 0
+            else: dev_idx, out_idx = 0, 0
             
-            print(f"[INFO] DXCam Init: GPU{dev_idx} Output{out_idx}")
             camera = dxcam.create(device_idx=dev_idx, output_idx=out_idx)
             camera.start(target_fps=60, video_mode=True)
             SCREEN_W, SCREEN_H = camera.width, camera.height
@@ -295,7 +331,6 @@ def capture_thread_func():
                 img = camera.get_latest_frame() 
                 if img is not None:
                     if realtime_mode:
-                        # 极速模式：强行清空队列，只留最新
                         while not frame_queue.empty():
                             try: frame_queue.get_nowait()
                             except: break
@@ -303,19 +338,16 @@ def capture_thread_func():
                     else:
                         if not frame_queue.full(): frame_queue.put(img)
                         else: time.sleep(0.001)
-                else:
-                    time.sleep(0.001)
+                else: time.sleep(0.001)
             camera.stop()
             del camera
 
-        else:
-            # MSS Capture
+        elif backend == "MSS":
             sct = mss.mss()
             monitor_id = CONFIG["monitor_id"]
             if monitor_id >= len(sct.monitors): monitor_id = 1
             monitor = sct.monitors[monitor_id]
             SCREEN_W, SCREEN_H = monitor['width'], monitor['height']
-            print(f"[INFO] MSS Started: {SCREEN_W}x{SCREEN_H}")
 
             while running:
                 if not running: break
@@ -362,29 +394,15 @@ def add_black_borders_gpu(img_tensor, target_w, target_h):
     if pad_h <= 0 and pad_w <= 0: return img_tensor
     return torch.nn.functional.pad(img_tensor, (pad_w//2, pad_w-pad_w//2, pad_h//2, pad_h-pad_h//2), mode='constant', value=0)
 
-# ==========================================
-# 🎨 OSD 显示逻辑 (已修改：Model显示在底部)
-# ==========================================
 def draw_osd_full(img, fps, focus, str_val, buffer_size, gpu_load, ram_gb, cpu_percent, vram_gb, in_res, out_res):
     h, w = img.shape[:2]
     font, scale, color, thick = cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 127), 2
     fps_col = (0, 0, 255) if fps < 20 else color
     buf_str = "REALTIME" if CONFIG["buffer"] <= 1 else f"{buffer_size}/{CONFIG['buffer']}"
     
-    # 左侧信息栏 (移除 Model)
-    lines_l = [
-        (f"FPS : {fps:.1f}", fps_col),
-        (f"Buf : {buf_str}", color),
-        (f"Str : {str_val:.3f}", color),
-        (f"Foc : {focus:.2f}", color)
-    ]
-    # 右侧信息栏
-    lines_r = [
-        (f"GPU : {gpu_load}%", color),
-        (f"VRAM: {vram_gb:.1f}G", color),
-        (f"CPU : {cpu_percent:.0f}%", color),
-        (f"RAM : {ram_gb:.1f}G", color)
-    ]
+    lines_l = [(f"FPS : {fps:.1f}", fps_col), (f"Buf : {buf_str}", color), (f"Str : {str_val:.3f}", color), (f"Foc : {focus:.2f}", color)]
+    lines_r = [(f"GPU : {gpu_load}%", color), (f"VRAM: {vram_gb:.1f}G", color), (f"CPU : {cpu_percent:.0f}%", color), (f"RAM : {ram_gb:.1f}G", color)]
+    
     y = 40
     for text, col in lines_l:
         cv2.putText(img, text, (22, y+2), font, scale, (0,0,0), thick+1)
@@ -396,26 +414,19 @@ def draw_osd_full(img, fps, focus, str_val, buffer_size, gpu_load, ram_gb, cpu_p
         cv2.putText(img, text, (240, y), font, scale, col, thick)
         y += 30
     
-    # 底部信息栏 (合并显示 Model)
     res_info = f"In: {in_res[0]}x{in_res[1]} -> Out: {out_res[0]}x{out_res[1]} | Model: {CONFIG['model']}"
     cv2.putText(img, res_info, (20, h - 45), font, 0.5, (200, 200, 200), 1)
-    
     cv2.putText(img, f"Press 'ESC' to Menu, 'Q' to Quit", (20, h - 20), font, 0.5, (255, 255, 0), 1)
 
 # ==========================================
 # ▶️ 播放器主逻辑
 # ==========================================
 def start_player():
-    """
-    Returns:
-        bool: True if user wants to restart (go to menu), False if quit.
-    """
     global running, DIVERGENCE, SWAP_EYES, thread_error, show_osd, SCREEN_W, SCREEN_H, frame_queue
-    
-    # 状态重置
     running = True
     thread_error = None
     SCREEN_W, SCREEN_H = 0, 0
+    restart_requested = False
     
     q_size = 1 if CONFIG["buffer"] <= 1 else CONFIG["buffer"] + 5
     frame_queue = queue.Queue(maxsize=q_size)
@@ -446,30 +457,27 @@ def start_player():
         cv2.putText(loading_img, text, (text_x, text_y), font, 1.2, (255, 255, 255), 2)
         cv2.putText(loading_img, "Press Q to Quit", (render_w//2 - 50, render_h - 100), font, 0.8, (150, 150, 150), 1)
         cv2.imshow(win_name, loading_img)
-        key = cv2.waitKey(1)
-        if key & 0xFF == ord('q'): 
-            running = False
-            return False 
+        if cv2.waitKey(1) & 0xFF == ord('q'): running = False; return False 
 
     print("[INFO] Waiting for capture resolution...")
     for _ in range(50):
         if not running: break
-        update_loading("Waiting for camera source...")
+        update_loading("Waiting for source connection...")
         if SCREEN_W > 0: break
         time.sleep(0.1)
     
     if not running: return False
     
-    # 确定目标分辨率
-    target_render_w, target_render_h = (1920, 1080) if CONFIG["res_mode"] == "1080p" else (1280, 720) if CONFIG["res_mode"] == "720p" else (SCREEN_W or 1920, SCREEN_H or 1080)
+    # 根据 GUI 解析出的分辨率来决定渲染画框的大小
+    req_w, req_h = parse_resolution(CONFIG["res_mode"])
+    target_render_w, target_render_h = (req_w, req_h) if (req_w and req_h) else (SCREEN_W or 1920, SCREEN_H or 1080)
+    
     cv2.resizeWindow(win_name, target_render_w, target_render_h)
     render_w, render_h = target_render_w, target_render_h
 
-    # 加载模型
     try:
         fname_map = {"Small": "depth_anything_v2_vits.pth", "Base":  "depth_anything_v2_vitb.pth", "Large": "depth_anything_v2_vitl.pth"}
         fname = fname_map.get(CONFIG["model"], "depth_anything_v2_vitb.pth")
-        
         user_path = os.path.join(project_root, "models", fname)
         iw3_target_path = os.path.join(project_root, "lib", "iw3", "pretrained_models", "hub", "checkpoints", fname)
 
@@ -495,18 +503,15 @@ def start_player():
 
     prev_depth, current_focus, frame_cnt, start_time = None, 0.5, 0, time.time()
     fps_val, gpu_load, cpu_val, ram_val, vram_val = 0.0, 0.0, 0.0, 0.0, 0.0
-    restart_requested = False
 
-    print(f"[INFO] Core Loop Started. Mode: {CONFIG['res_mode']}")
+    print(f"[INFO] Core Loop Started. Output Render: {target_render_w}x{target_render_h}")
 
-    # === 播放循环 ===
     while running:
         if thread_error: break
         try: captured_data = frame_queue.get(timeout=0.01)
         except: continue
 
-        # 1. GPU Upload
-        if CONFIG["capture_backend"] == "DXCam":
+        if CONFIG["capture_backend"] == "Camera" or CONFIG["capture_backend"] == "DXCam":
             src_h, src_w = captured_data.shape[:2]
             img_gpu_raw = torch.from_numpy(captured_data).to(DEVICE, non_blocking=True).permute(2, 0, 1).unsqueeze(0).half() / 255.0
         else:
@@ -516,8 +521,7 @@ def start_player():
             img_gpu_raw = img_bgra.to(DEVICE, non_blocking=True).permute(2, 0, 1).unsqueeze(0).half() / 255.0
             img_gpu_raw = img_gpu_raw[:, [2, 1, 0], :, :] 
 
-        # 2. Render Scale
-        if CONFIG["res_mode"] != "Native":
+        if not (src_w == target_render_w and src_h == target_render_h):
             if CONFIG["fill_mode"] == "Stretch":
                  img_render = torch.nn.functional.interpolate(img_gpu_raw, size=(target_render_h, target_render_w), mode='bilinear', align_corners=False)
                  final_h, final_w = target_render_h, target_render_w
@@ -530,12 +534,9 @@ def start_player():
             img_render = img_gpu_raw
             final_h, final_w = target_render_h, target_render_w 
 
-        # 3. AI Scale
-        ai_h = get_multiple_of_14(int(INFER_WIDTH * src_h / src_w))
-        ai_w = get_multiple_of_14(INFER_WIDTH)
+        ai_h, ai_w = get_multiple_of_14(int(INFER_WIDTH * src_h / src_w)), get_multiple_of_14(INFER_WIDTH)
         img_ai = torch.nn.functional.interpolate(img_gpu_raw, size=(ai_h, ai_w), mode='bilinear', align_corners=False)
 
-        # 4. Inference
         with torch.inference_mode():
             raw_depth = model(img_ai)
             if isinstance(raw_depth, dict): raw_depth = list(raw_depth.values())[0]
@@ -557,7 +558,7 @@ def start_player():
             left, right = apply_smart_stereo_gpu(img_render, depth_render, DIVERGENCE, current_focus, SWAP_EYES)
             anaglyph = torch.cat((left[:, 0:1], right[:, 1:2], right[:, 2:3]), dim=1)
             
-            if CONFIG["fill_mode"] == "Fit" and CONFIG["res_mode"] != "Native": 
+            if CONFIG["fill_mode"] == "Fit" and not (src_w == target_render_w and src_h == target_render_h): 
                 anaglyph = add_black_borders_gpu(anaglyph, target_render_w, target_render_h)
             
             final_show = (anaglyph.squeeze(0).permute(1, 2, 0)[..., [2, 1, 0]] * 255).clamp(0, 255).to(torch.uint8).cpu().numpy()
@@ -571,7 +572,7 @@ def start_player():
         if key & 0xFF == ord('q'): 
             running = False
             restart_requested = False
-        elif key == 27: # ESC
+        elif key == 27: 
             running = False
             restart_requested = True
         elif key & 0xFF == ord('f'):
