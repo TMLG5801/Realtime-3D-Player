@@ -28,6 +28,8 @@ Please scroll down for the English version.
 
 **选择安装OBS**
 
+[点击下载 OBS (Windows)](https://cdn-fastly.obsproject.com/downloads/OBS-Studio-32.0.4-Windows-x64-Installer.exe)
+
 **硬件要求：** 一幅红蓝3D眼镜！！！必须使用 NVIDIA RTX系列显卡，且需安装最新的显卡驱动。
 
 ### 2. 一键安装环境 (仅首次需要)
@@ -162,6 +164,8 @@ This project uses automated deployment scripts. Please follow the steps below pr
 **⚠️ Important:** Check the **"Add Python 3.10 to PATH"** option at the bottom during installation!
 
 **Optional OBS Installation**
+
+[Click to download OBS (Windows)](https://cdn-fastly.obsproject.com/downloads/OBS-Studio-32.0.4-Windows-x64-Installer.exe)
 
 **Hardware:** A pair of Red-Blue 3D Glasses!!!NVIDIA RTX series graphics cards are required, and the latest graphics card drivers must be installed.
 
