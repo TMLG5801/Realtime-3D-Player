@@ -152,6 +152,11 @@ Please scroll down for the English version.
 
 ---
 
+## 六、数据流
+
+<img width="2877" height="8191" alt="GPU VRAM Processing Pipeline-2026-03-05-195040" src="https://github.com/user-attachments/assets/cdb38e52-3e3d-4cb6-80e6-02405926e5c6" />
+
+---
 ## I. Installation and Running Guide
 
 This project uses automated deployment scripts. Please follow the steps below precisely.
