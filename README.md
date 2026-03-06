@@ -12,7 +12,10 @@ Please scroll down for the English version.
   <img width="5120" height="1600" alt="540458626-313537f7-faa2-4802-b0d2-8c65dc7fb617" src="https://github.com/user-attachments/assets/9fcb4703-b4b7-484e-9c8a-1e47a21b7895" />
   <br>
   <sub>👆 实机演示截图 (Real-time Demo) | ⚡ 测试环境: RTX 3080 | Model: Large | Res: 1080P</sub>
+</div>
 </p>
+
+[演示视频(Demo video)](https://www.bilibili.com/video/BV1uSP2zgEW5/)
 
 ## 一、安装与运行指南
 
